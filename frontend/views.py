@@ -494,7 +494,7 @@ def portfolio(request):
     try:
         candidate = Github.objects.get(candidate=request.user)
         user = candidate.github_username
-        username = "simon-suuk"
+        username = config('GITHUB_USERNAME',default='GITHUB_USERNAME')
         token = config('ACCESS_TOKEN',default='ACCESS_TOKEN')
         json_data = requests.get('https://api.github.com/users/' + user, auth=(username, token)).json()
 
@@ -535,7 +535,7 @@ def portfolio(request):
 
 
         experiences=Experience.objects.filter(candidate=request.user).all()
-        verified_projects = Portfolio.objects.filter(candidate=request.user).filter(verified=True).all()
+        verified_projects = Portfolio.objects.filter(candidate=request.user).all()
         return render(request, 'frontend/developer/portfolio.html',
                       {'json': json_data, 'repos': repoz, 'data': data, 'c': c, 'form': form,
                        'verified_projects': verified_projects,'experience_form':experience_form,'experiences':experiences,'skills':skills})
@@ -563,7 +563,7 @@ def get_data(request, *args, **kwargs):
     try:
         candidate = Github.objects.get(candidate=request.user)
         user = candidate.github_username
-        username = "simon-suuk"
+        username = config('GITHUB_USERNAME',default='GITHUB_USERNAME')
         token = config('ACCESS_TOKEN',default='ACCESS_TOKEN')
         repo = 'https://api.github.com/users/' + user + '/repos'
         repos = requests.get(repo, auth=(username, token)).json()
