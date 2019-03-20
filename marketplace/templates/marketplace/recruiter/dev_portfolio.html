@@ -1,0 +1,285 @@
+{% extends 'candidatesbase.html' %}
+{% load bootstrap4 %}
+{% block title %}
+    recruiter dashboard
+{% endblock %}
+
+{% load static %}
+{% block content %}
+    <main role="main" class="col-md-12 ml-lg-auto  col-lg-10 px-4 ">
+        <div class="d-none d-lg-block">
+            <nav class="navbar  navbar-light fixed-top fine border-bottom">
+                <h5>Home</h5>
+                <ul class="nav ml-auto">
+
+
+                    {% if request.user.is_authenticated %}
+
+
+
+                        <li class="nav-item">
+                            <a href="{% url 'account_logout' %}" style="color: black" class="nav-link">Logout</a>
+                        </li>
+
+                    {% else %}
+
+                        <li class="nav-item">
+                            <a href="{% url 'account_login' %}" style="color: black" class="nav-link">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'account_signup' %}" style="color: black" class="nav-link">Register</a>
+                        </li>
+                    {% endif %}
+
+
+                </ul>
+            </nav>
+        </div>
+
+        <!-----md devices adaptation------>
+        <div class="container d-lg-none">
+            <nav class=" navbar loginbar navbar-expand-md navbar-light fixed-top ">
+                <a class="logoadapt h5" style="text-decoration: none" href="/home">Portfolio</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon">
+                    <span style="color: white" data-feather="menu"></span>
+                </span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+                    <ul class="nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" style="color: white" href="#" id="navbarDropdown"
+                               role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Sidebar menu options
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="/">Dashboard</a>
+                                <a class="dropdown-item" href="{% url 'frontend:buildproject' %}">Build a Project</a>
+                                <a class="dropdown-item" href="{% url 'students:tests' %}">Skill assessment</a>
+                                <a class="dropdown-item" href="{% url 'frontend:calltoapply' %}">Companies
+                                    recruiting</a>
+                                <a class="dropdown-item" href="/update_profile/">My profile</a>
+                            </div>
+                        </li>
+                        {% if request.user.is_authenticated %}
+
+                            <li class="nav-item">
+                                <a href="{% url 'account_logout' %}" style="color: white" class="nav-link">Log out</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a href="{% url 'account_login' %}" style="color: white" class="nav-link">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'account_signup' %}" style="color: white" class="nav-link">Register</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <div class="d-none d-lg-block" style="margin-top: 6%">
+
+        </div>
+        <div class="d-lg-none" style="margin-top: 7em">
+
+        </div>
+        <div class="shadow-sm p-3 portfo" style="height: 10%">
+            <div class="row ">
+
+                <div class="col-lg-4">
+
+                    {% for key, value in json.items %}
+                        {% if key == 'avatar_url' %}
+                            <div style="width: 13rem;">
+                                <img class="card-img-top"
+                                     style="margin-top: 5%;margin-left: 5%;border: 22px;padding: 8px;" src="{{ value }}"
+                                     alt="Card image cap">
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="col-lg-4" style="">
+
+                    <p>Name: {{ developer.first_name }} {{ developer.last_name }}</p>
+                    <p>email: {{ developer.email }}</p>
+                    <p>Linkedin profile: {{ developer.profile.linkedin_url }}</p>
+                    <p>Preffered work type: {{ developer.profile.availabilty }}</p>
+
+                </div>
+                <div class="col-lg-4">
+                    <div data-toggle="tooltip" data-placement="top" title="Based on Taken and passed quizzes">Verified
+                        Skills <span data-feather="help-circle"></span></div>
+                    {% if skills %}
+                        {% for skill in skills %}
+                            <span class="badge btn-primary" style="background-color: #b627a1">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="badge btn-primary" style="background-color: #28bbbb">Take an assessment quiz</span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <div class="shadow-lg p-3 mb-5  mt-5">
+            <h5 class="text-center">My Projects</h5>
+            <hr>
+        </div>
+        <div class="row">
+            {% if verified_projects %}
+                {% for verified_project in verified_projects %}
+                    <div class="col-lg-4">
+                        <a target="_blank" href="{{ verified_project.demo_link }}" style="color: black">
+                            <div class="card shadow-sm  bg-white"
+                                 style="border-bottom-left-radius: 0;border-bottom-right-radius: 0">
+                                <img class="img-fluid" src="{{ verified_project.image }}" style=""
+                                     alt="Card image cap">
+                                <div class="card-body">
+                                    <p>Project title: {{ verified_project.title }}</p>
+                                    <p>Project description: {{ verified_project.description }}</p>
+                                    <p><a href="{{ verified_project.repository_link }}">Repository link</a></p>
+                                    {% if verified_project.verified %}
+                                        <div data-toggle="tooltip" data-placement="top" title="Only visible to you">
+                                            <span class="badge btn-primary mt-2" style="background-color: #28bbbb">
+                                            Verified </span><span data-feather="help-circle"></span>
+                                        </div>
+                                    {% else %}
+                                        <div>
+                                        <span class="badge btn-primary mt-2" style="background-color: #b627a1">
+                                            Unverified </span><span data-feather="help-circle">
+                                        </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">No projects onboarded or verified</div>
+            {% endif %}
+        </div>
+        <div class="shadow-sm p-3 mb-5  mt-5">
+            <h5 class="text-center">Github Repositories</h5>
+            <hr>
+            <div class="row">
+                {% for repo in repos %}
+                    <div class="col-lg-3">
+                        <div class="card mt-2 ml-2" style="border-radius: 0;height: 5rem;">
+                            <div class="">
+                                {% for key, value in repo.items %}
+
+                                    {% if key == 'name' %}
+                                        <div style="background-color: #c0f1e2;padding: 1%">
+                                            <p class="ml-2 mt-1"><span data-feather="github"></span> {{ value }}</p>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if key == 'language' %}
+                                        <div style="padding: 1%;">
+                                            <p class="ml-2"><span data-feather="code"></span> {{ value }}</p>
+                                        </div>
+
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-center mt-2">
+                <div class="pagination">
+                    <span class="step-links">
+    <ul class="pagination">
+
+        {% if repos.has_previous %}
+            <li class="page-item">
+            <a class="page-link" href="?page=1">&laquo; first</a>
+            </li>
+            <li class="page-item">
+            <a class="page-link" href="?page={{ repos.previous_page_number }}">previous</a>
+            </li>
+        {% endif %}
+
+        <li class="page-link">
+        <span class="current">
+            Page {{ repos.number }} of {{ repos.paginator.num_pages }}.
+        </span>
+        </li>
+        {% if repos.has_next %}
+            <li class="page-item">
+            <a class="page-link" href="?page={{ repos.next_page_number }}">next</a>
+            </li>
+            <li class="page-item">
+            <a class="page-link" href="?page={{ repos.paginator.num_pages }}">last &raquo;</a>
+            </li>
+        {% endif %}
+        </li>
+    </ul>
+    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="shadow-sm p-3 " style="width: 80%;margin: auto;">
+            <h5 class="text-center">Technologies used</h5>
+            <hr>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="row">
+                        {% for key,value in c.items %}
+                            <div class="col-lg-6">
+                                <div class="shadow p-3 mb-5 bg-white">
+                                    {{ key }}
+                                    <div>
+                                        <span data-feather="git-commit"></span> commits: {{ value }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <canvas id="myChart2"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="shadow-sm p-3 mb-5  mt-5">
+            <h5 class="text-center">Work experience</h5>
+            <hr>
+            <div class="row">
+                {% if experiences %}
+                    {% for experience in experiences %}
+                        <div class="col-lg-6  ">
+                            <div class="row shadow-lg " style="margin: auto">
+                                <div class="col-lg-5 p-3" style="background-color: #c0f1e2">
+                                    <p><strong>Title </strong> : {{ experience.title|capfirst }}</p>
+                                    <p><strong>Company</strong> :{{ experience.company|capfirst }}</p>
+                                    <p><strong>Duration</strong>:{{ experience.duration }}</p>
+                                    <p><strong>Location</strong>:{{ experience.location.name }}</p>
+                                </div>
+                                <div class="col-lg-7 p-3">
+                                    <h6>Work description</h6>
+                                    <p>{{ experience.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 text-center">No experience added yet</div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+
+
+{% endblock %}

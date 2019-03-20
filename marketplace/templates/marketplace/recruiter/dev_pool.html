@@ -1,11 +1,12 @@
-{% extends 'candidatesbase.html' %}
-{% load bootstrap4 %}
+{% extends 'recruiterbase.html' %}
+
 {% block title %}
-    developers
+    recruiter dashboard
 {% endblock %}
+
 {% load static %}
 {% block content %}
-    <main role="main" class="col-md-12 col-lg-10 ml-lg-auto   px-4 ">
+    <main role="main" class="col-md-12 ml-lg-auto  col-lg-10 px-4 ">
         <div class="d-none d-lg-block">
             <nav class="navbar  navbar-light fixed-top fine border-bottom">
                 <h5>Home</h5>
@@ -13,6 +14,7 @@
 
 
                     {% if request.user.is_authenticated %}
+
 
 
                         <li class="nav-item">
@@ -50,16 +52,23 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" style="color: white" href="#" id="navbarDropdown"
                                role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Sidebar menu options
+                                Menu
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-{#                                <a class="dropdown-item" href="{% url 'frontend:inprogress' user.id %}">Ongoing#}
-{#                                    Projects</a>#}
-                                <a class="dropdown-item" href="/update_profile/">My profile</a>
+                                <a class="dropdown-item" href="{% url 'frontend:my-activity' %}">Ongoing tests</a>
+                                <a class="dropdown-item" href="{% url 'projects:categories' %}">Create a test</a>
+                                <a class="dropdown-item" href="{% url 'transactions:sourcing' %}">Source candidates</a>
+                                {% if request.user.is_staff %}
+                                    <a class="dropdown-item" href="{% url 'frontend:onboarddevs' %}">devs</a>
+                                    <a class="dropdown-item"
+                                       href="{% url 'frontend:onboardrecruiters' %}">recruiters</a>
+                                {% endif %}
                             </div>
                         </li>
                         {% if request.user.is_authenticated %}
-
+                            <li class="nav-item">
+                                <a href="/home" style="color: white" class="nav-link">Home</a>
+                            </li>
                             <li class="nav-item">
                                 <a href="{% url 'account_logout' %}" style="color: white" class="nav-link">Logout</a>
                             </li>
@@ -75,71 +84,29 @@
                 </div>
             </nav>
         </div>
-        <div class="d-none d-lg-block" style="margin-top: 6%">
 
+        <div class="row">
+            {% for dev in developers %}
+                <div class=" col-12 col-md-4 col-sm-6 col-lg-4 mb-5">
+                <div class="card recruithomecard" style="width: 60%;margin: 10%;margin-top: 20%">
+                    <div class="card-body">
+                        <img height="40" width="auto" class="img-fluid" src="/static/frontend/images/devprofile.png"
+                             style="width: 30%; text-align: center; display: block; margin: 0 auto"
+                             alt="Card image cap">
+
+                        <h6 class="card-title text-center"
+                            style="text-align: -webkit-center;">{{ dev.first_name }} {{ dev.last_name }}</h6>
+
+                        <p class="text-center"><a href="{% url 'marketplace:dev_details' dev.id %}">View Details</a></p>
+
+                        <p class="text-center"><a href=".">Chat</a></p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        <div class="d-lg-none" style="margin-top: 7em">
-
-        </div>
-
-
-        <h1 style="color: #0580c9">{{ job.title }}</h1>
-
-        <p class="date">
-            Job Posted {{ job.created }} by <span
-                style="color: #c69500">{{ job.posted_by }} ({{ job.posted_by.profile.job_role }})</span> of <span
-                style="color: #c91452"><a href="{{ job.posted_by.profile.company_url }}"
-                                          target="_blank">{{ job.posted_by.profile.company }}</a></span>
-        </p>
-
-        <h3 style="color: #0580c9">Job Description</h3>
-        {{ job.description|linebreaks }}
-
-
-        <h6 style="text-decoration: underline; color: #0580c9;">Job Role</h6>
-        <h6 style="color: #c91452">
-            <td>{{ job.job_role }}</td>
-        </h6>
-
-        <h6 style="text-decoration: underline; color: #0580c9;">Job Location</h6>
-        <h6 style="color: #c91452">
-            <td>{{ job.location.name }}</td>
-        </h6>
-
-        <h6 style="text-decoration: underline; color: #0580c9;">Developer Experience</h6>
-        <h6 style="color: #c91452">
-            <td>{{ job.dev_experience }}</td>
-        </h6>
-
-        <h6 style="text-decoration: underline; color: #0580c9;">Engagement Type</h6>
-        <h6 style="color: #c91452">
-            <td>{{ job.engagement_type }}</td>
-        </h6>
-
-        <h6 style="text-decoration: underline; color: #0580c9;">Tech Stack</h6>
-        <h6 style="color: #c91452">
-            <td>{{ job.tech_stack }}</td>
-        </h6>
-
-        <h6 style="text-decoration: underline; color: #0580c9;">Remuneration In Dollars</h6>
-        <h6 style="color: #c91452">
-            <td>{{ job.remuneration }}</td>
-        </h6>
-
-
-        <form action="{% url 'marketplace:apply_for_job' job.id %}" method="post" class="form">
-            {% csrf_token %}
-
-            <p class="text-center mt-4">
-                {% if status %}
-                    <input class="btn theme--dark primary " style="border-radius: 0; margin: auto; color: white" type="submit" value="Great! You've Applied For This Job Already" disabled>
-                {% else %}
-                    <input class="btn theme--dark primary " style="border-radius: 0; margin: auto; color: white" type="submit" value="Apply For This Job!">
-                {% endif %}
-            </p>
-        </form>
-
-
     </main>
+
+
 
 {% endblock %}
