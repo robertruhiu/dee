@@ -1,3 +1,4 @@
+import json
 from collections import Counter
 
 import requests
@@ -15,8 +16,9 @@ from django.utils.html import strip_tags
 from classroom.models import Student, TakenQuiz
 from frontend.form import Portfolio_form, Experience_Form, Github_form
 from frontend.models import Github, Experience, Portfolio
+from marketplace.filters import UserFilter
 from .models import Job, JobApplication
-from .forms import JobForm
+from .forms import JobForm, SearchForm
 
 
 def job_list(request):
@@ -151,13 +153,26 @@ def get_recommended_developers(job):
 
 
 def dev_pool(request):
-    allusers = User.objects.all()
-    developers = []
-    for alluser in allusers:
-        if alluser.profile.user_type == 'developer':
-            developers.append(alluser)
+    if request.method == 'POST':
+        search_form = SearchForm()
 
-    return render(request, 'marketplace/recruiter/dev_pool.html', {'developers': developers})
+        print('request.POST------------> ', json.dumps(request.POST))
+        developers = User.objects.filter(profile__user_type='developer')
+        developers_filter = UserFilter(request.POST, queryset=developers)
+        developers = [dev for dev in developers_filter.qs]
+
+        return render(request, 'marketplace/recruiter/dev_pool.html',
+                      {'developers': developers, 'search_form': developers_filter.form})
+    else:
+        search_form = SearchForm()
+
+        print('request.GET------------> ', json.dumps(request.GET))
+        developers = User.objects.filter(profile__user_type='developer')
+        developers_filter = UserFilter(request.GET, queryset=developers)
+        developers = [dev for dev in developers_filter.qs]
+
+        return render(request, 'marketplace/recruiter/dev_pool.html',
+                      {'developers': developers, 'search_form': developers_filter.form})
 
 
 def dev_details(request, dev_id):

@@ -1,5 +1,6 @@
 {% extends 'recruiterbase.html' %}
 
+{% load bootstrap4 %}
 {% block title %}
     recruiter dashboard
 {% endblock %}
@@ -85,24 +86,93 @@
             </nav>
         </div>
 
-        <div class="row">
-            {% for dev in developers %}
-                <div class=" col-12 col-md-4 col-sm-6 col-lg-4 mb-5">
-                <div class="card recruithomecard" style="width: 60%;margin: 10%;margin-top: 20%">
-                    <div class="card-body">
-                        <img height="40" width="auto" class="img-fluid" src="/static/frontend/images/devprofile.png"
-                             style="width: 30%; text-align: center; display: block; margin: 0 auto"
-                             alt="Card image cap">
+        <div class="d-none d-lg-block" style="margin-top: 8%">
+        </div>
+        <div class="d-lg-none" style="margin-top: 5em">
+        </div>
 
-                        <h6 class="card-title text-center"
-                            style="text-align: -webkit-center;">{{ dev.first_name }} {{ dev.last_name }}</h6>
+        <form action="." method="post" class="form">
+            {% csrf_token %}
+            <div class="row">
+                <div class="input-group col-md-8">
+                    <input class="form-control py-2" type="search" placeholder="Search for developers">
+                    <span class="input-group-append">
+                        <button style="color: white" class="btn primary1 btn-outline-secondary" type="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </span>
+                </div>
 
-                        <p class="text-center"><a href="{% url 'marketplace:dev_details' dev.id %}">View Details</a></p>
+                <div class="col-md-4">
+                    <button class="btn primary1" style="color: white" type="button" data-toggle="collapse"
+                            data-target="#collapseFilters" aria-expanded="false" aria-controls="collapseFilters">
+                        <i class="fa fa-filter"></i> Filters
+                    </button>
+                </div>
+            </div>
 
-                        <p class="text-center"><a href=".">Chat</a></p>
+            <div class="d-lg-none" style="margin-top: 5em">
+            </div>
+
+            <hr>
+
+            <div class="collapse" id="collapseFilters">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <label>Language</label>
+                        {% bootstrap_field search_form.profile__language placeholder=False show_label=False required=False %}
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <label>Framework</label>
+                        {% bootstrap_field search_form.profile__framework placeholder=False show_label=False %}
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <label>Location</label>
+                        {% bootstrap_field search_form.profile__country placeholder=False show_label=False %}
+                    </div>
+{#                     <div class="col-lg-4 col-md-6 col-sm-6">#}
+{#                        <label>Tech Stack</label>#}
+{#                        {% bootstrap_field job_form.tech_stack placeholder=False show_label=False %}#}
+{#                    </div>#}
+                </div>
+
+                <div class="row">
+{#                    <div class="col-lg-4 col-md-6 col-sm-6">#}
+{#                        <label>Job role</label>#}
+{#                        {% bootstrap_field job_form.job_role show_label=False %}#}
+{#                    </div>#}
+
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <label>Experience</label>
+                        {% bootstrap_field search_form.profile__years show_label=False %}
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <label>Contract type</label>
+                        {% bootstrap_field search_form.profile__availabilty placeholder='react, angular, python etc' show_label=False %}
                     </div>
                 </div>
             </div>
+        </form>
+
+        <div class="row">
+            {% for dev in developers %}
+                <div class=" col-12 col-md-4 col-sm-6 col-lg-4 mb-5">
+                    <div class="card recruithomecard" style="width: 60%;margin: 10%;margin-top: 20%">
+                        <div class="card-body">
+                            <img height="40" width="auto" class="img-fluid" src="/static/frontend/images/devprofile.png"
+                                 style="width: 30%; text-align: center; display: block; margin: 0 auto"
+                                 alt="Card image cap">
+
+                            <h6 class="card-title text-center"
+                                style="text-align: -webkit-center;">{{ dev.first_name }} {{ dev.last_name }}</h6>
+
+                            <p class="text-center"><a href="{% url 'marketplace:dev_details' dev.id %}">View Details</a>
+                            </p>
+
+                            <p class="text-center"><a href=".">Chat</a></p>
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
         </div>
     </main>
