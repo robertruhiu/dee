@@ -95,7 +95,8 @@
             {% csrf_token %}
             <div class="row">
                 <div class="input-group col-md-8">
-                    <input class="form-control py-2" type="search" placeholder="Search for developers">
+                    <input class="form-control py-2" type="search" placeholder="Search for developers" name="search_field" value="">
+{#                    {% bootstrap_field type="search" search_form.search_field placeholder="Search for developers" show_label=False %}#}
                     <span class="input-group-append">
                         <button style="color: white" class="btn primary1 btn-outline-secondary" type="submit">
                             <i class="fa fa-search"></i>
@@ -120,7 +121,7 @@
                 <div class="row">
                     <div class="col-lg-4 col-md-6 col-sm-6">
                         <label>Language</label>
-                        {% bootstrap_field search_form.profile__language placeholder=False show_label=False required=False %}
+                        {% bootstrap_field search_form.profile__language placeholder=False show_label=False %}
                     </div>
                     <div class="col-lg-4 col-md-6 col-sm-6">
                         <label>Framework</label>

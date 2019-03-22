@@ -6,9 +6,6 @@ class UserFilter(django_filters.FilterSet):
     class Meta:
         model = User
         fields = [
-            'username',
-            'first_name',
-            'last_name',
             'profile__language',
             'profile__framework',
             'profile__years',

@@ -1,9 +1,9 @@
-import json
 from collections import Counter
 
 import requests
 from decouple import config
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
@@ -18,7 +18,7 @@ from frontend.form import Portfolio_form, Experience_Form, Github_form
 from frontend.models import Github, Experience, Portfolio
 from marketplace.filters import UserFilter
 from .models import Job, JobApplication
-from .forms import JobForm, SearchForm
+from .forms import JobForm
 
 
 def job_list(request):
@@ -153,21 +153,30 @@ def get_recommended_developers(job):
 
 
 def dev_pool(request):
-    if request.method == 'POST':
-        search_form = SearchForm()
+    developers = User.objects.filter(profile__user_type='developer')
 
-        print('request.POST------------> ', json.dumps(request.POST))
-        developers = User.objects.filter(profile__user_type='developer')
+    if request.method == 'POST':
+        search_field = request.POST['search_field']
+
         developers_filter = UserFilter(request.POST, queryset=developers)
-        developers = [dev for dev in developers_filter.qs]
+
+        filtered_devs = developers_filter.qs
+
+        developers = filtered_devs.filter(
+            Q
+            (username__icontains=search_field)
+            | Q(first_name__icontains=search_field)
+            | Q(last_name__icontains=search_field)
+            | Q(profile__gender__icontains=search_field)
+            | Q(profile__framework__icontains=search_field)
+            | Q(profile__language__icontains=search_field)
+        )
+
+        developers = [dev for dev in developers]
 
         return render(request, 'marketplace/recruiter/dev_pool.html',
                       {'developers': developers, 'search_form': developers_filter.form})
     else:
-        search_form = SearchForm()
-
-        print('request.GET------------> ', json.dumps(request.GET))
-        developers = User.objects.filter(profile__user_type='developer')
         developers_filter = UserFilter(request.GET, queryset=developers)
         developers = [dev for dev in developers_filter.qs]
 
