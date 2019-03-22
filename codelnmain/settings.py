@@ -279,5 +279,7 @@ MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN,
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
+TAGGIT_CASE_INSENSITIVE = True
+
 if ENVIRONMENT != 'local':
     pass

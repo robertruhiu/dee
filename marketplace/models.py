@@ -4,6 +4,7 @@ from django.urls import reverse
 from django_countries.fields import CountryField
 from django.contrib.auth.models import User
 
+
 class Job(models.Model):
     ENGAGEMENT_TYPE = (
         ('Full-time', 'Full-time'),
@@ -29,7 +30,7 @@ class Job(models.Model):
         ('Mid-Level', 'Mid-Level'),
         ('Senior', 'Senior'),
     )
-    company=models.CharField(max_length=300)
+    company = models.CharField(max_length=300)
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -51,10 +52,7 @@ class Job(models.Model):
         return self.title
 
 
-
 class JobApplication(models.Model):
     job = models.ForeignKey(Job, related_name='job_applications', on_delete=models.CASCADE)
-    candidate = models.ForeignKey(User, on_delete=models.CASCADE,related_name='devs')
+    candidate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devs')
     selected = models.BooleanField(default=False)
-
-

@@ -120,36 +120,12 @@ def select_candidate(request, job_id, dev_id):
 
 
 def get_recommended_developers(job):
-    allusers = User.objects.all()
-    developers = []
-    for alluser in allusers:
-        if alluser.profile.user_type == 'developer':
-            developers.append(alluser)
+    job_tags = [job.engagement_type, job.job_role, job.location.name, job.dev_experience, job.tech_stack]
 
-    recommended_developers = set()
+    developers = User.objects.filter(profile__user_type='developer').filter(
+        profile__tags__name__in=job_tags)
 
-    tech_stack = job.tech_stack.split(',')
-
-    for developer in developers:
-        if job.engagement_type == developer.profile.availabilty:
-            recommended_developers.add(developer)
-        elif job.job_role == developer.profile.language or job.job_role == developer.profile.framework:
-            recommended_developers.add(developer)
-        elif developer.profile.language in tech_stack or developer.profile.framework in tech_stack:
-            recommended_developers.add(developer)
-        elif job.location == developer.profile.country:
-            recommended_developers.add(developer)
-        elif (job.dev_experience == 'Entry' or job.dev_experience == 'Junior') and developer.profile.years == '1-2':
-            recommended_developers.add(developer)
-        elif (job.dev_experience == 'Junior' or job.dev_experience == 'Mid-Level') and developer.profile.years == '2-4':
-            recommended_developers.add(developer)
-        elif (
-                job.dev_experience == 'Mid-Level' or job.dev_experience == 'Senior') and developer.profile.years == '4-above':
-            recommended_developers.add(developer)
-        else:
-            pass
-
-    return recommended_developers
+    return developers
 
 
 def dev_pool(request):

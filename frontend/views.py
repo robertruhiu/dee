@@ -44,6 +44,27 @@ def developer_filling_details(request, current_profile):
             current_profile.phone_number = developer_filling_details_form.cleaned_data['phone_number']
             current_profile.stage = 'complete'
             current_profile.save()
+
+            user = User.objects.get(username=request.user)
+            exp1 = ''
+            exp2 = ''
+            # add tags to saved profile
+            if user.profile.years == "('1-2',)":
+                exp1 = 'Entry'
+                exp2 = 'Junior'
+            elif user.profile.years == "('2-4',)":
+                exp1 = 'Junior'
+                exp2 = 'Mid-Level'
+            elif user.profile.years == "('4-above',)":
+                exp1 = 'Mid-Level'
+                exp2 = 'Senior'
+
+            profile_tags = [current_profile.language, current_profile.framework, exp1, exp2, current_profile.country.name, current_profile.availabilty]
+
+            print('profile_tags-------------------> ', profile_tags)
+
+            current_profile.tags.add(profile_tags[0], profile_tags[1], profile_tags[2], profile_tags[3], profile_tags[4], profile_tags[5])
+
             return redirect(reverse('frontend:index'))
     else:
         developer_filling_details_form = DeveloperFillingDetailsForm()
