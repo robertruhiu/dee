@@ -59,11 +59,19 @@ def developer_filling_details(request, current_profile):
                 exp1 = 'Mid-Level'
                 exp2 = 'Senior'
 
-            profile_tags = [current_profile.language, current_profile.framework, exp1, exp2, current_profile.country.name, current_profile.availabilty]
+            languages = current_profile.language.split(',')  # languages
+            frameworks = current_profile.framework.split(',')  # frameworks
 
-            print('profile_tags-------------------> ', profile_tags)
+            profile_tags = [exp1.lower(), exp2.lower(), current_profile.country.name.lower(), current_profile.availabilty.lower()]
 
-            current_profile.tags.add(profile_tags[0], profile_tags[1], profile_tags[2], profile_tags[3], profile_tags[4], profile_tags[5])
+            for lang in languages:
+                profile_tags.append(lang.lower())
+
+            for fram in frameworks:
+                profile_tags.append(fram.lower())
+
+            for tag in profile_tags:
+                current_profile.tags.add(tag)
 
             return redirect(reverse('frontend:index'))
     else:

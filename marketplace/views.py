@@ -120,10 +120,16 @@ def select_candidate(request, job_id, dev_id):
 
 
 def get_recommended_developers(job):
-    job_tags = [job.engagement_type, job.job_role, job.location.name, job.dev_experience, job.tech_stack]
+    job_tags = [job.engagement_type.lower(), job.job_role.lower(), job.location.name.lower(),
+                job.dev_experience.lower()]
+
+    for tech_stack_item in job.tech_stack.split(','):
+        job_tags.append(tech_stack_item.lower())
+
+    print('job tags---------> ', job_tags)
 
     developers = User.objects.filter(profile__user_type='developer').filter(
-        profile__tags__name__in=job_tags)
+        profile__tags__name__in=job_tags).distinct()
 
     return developers
 
