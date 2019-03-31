@@ -1,5 +1,7 @@
 from collections import Counter
 
+from django.views.decorators.csrf import csrf_exempt
+
 import requests
 from decouple import config
 from django.core.paginator import Paginator
@@ -145,13 +147,12 @@ def dev_pool(request):
         filtered_devs = developers_filter.qs
 
         developers = filtered_devs.filter(
-            Q
-            (username__icontains=search_field)
-            | Q(first_name__icontains=search_field)
-            | Q(last_name__icontains=search_field)
-            | Q(profile__gender__icontains=search_field)
-            | Q(profile__framework__icontains=search_field)
-            | Q(profile__language__icontains=search_field)
+            Q(username__icontains=search_field) |
+            Q(first_name__icontains=search_field) |
+            Q(last_name__icontains=search_field) |
+            Q(profile__gender__icontains=search_field) |
+            Q(profile__framework__icontains=search_field) |
+            Q(profile__language__icontains=search_field)
         )
 
         developers = [dev for dev in developers]
@@ -219,3 +220,19 @@ def dev_details(request, dev_id):
         form = Github_form()
 
         return render(request, 'frontend/developer/github.html', {'form': form})
+
+
+def process_payment(request):
+    return render(request, 'marketplace/recruiter/payment.html',
+                  {'amount': 200, 'transaction': None})
+
+
+@csrf_exempt
+def payment_canceled(request, id):
+    # redirect to add candidates
+    return redirect(reverse('transactions:process_transaction'))
+
+
+@csrf_exempt
+def flutterwavepayment_done(request, id):
+    return redirect(reverse('transactions:process_transaction'))

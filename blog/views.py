@@ -1,9 +1,13 @@
+from django.contrib.auth.decorators import login_required
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.urls import reverse
+from django.utils.text import slugify
 from django.views.generic import ListView
 
 from .models import Post, Comment
-from .forms import CommentForm
+from .forms import CommentForm, PostForm
 from taggit.models import Tag
 from django.db.models import Count
 
@@ -75,3 +79,23 @@ def post_detail(request, year, month, day, post):
 
     return render(request, 'blog/post/detail.html',
                   {'post': post, 'comments': comments, 'comment_form': comment_form, 'similar_posts': similar_posts})
+
+
+@login_required
+def create_post(request):
+    if request.method == 'POST':
+        post_form = PostForm(data=request.POST)
+        if post_form.is_valid():
+            new_post = post_form.save(commit=False)
+            new_post.slug = slugify(new_post.title)
+            new_post.author = request.user
+            tags = post_form.cleaned_data['tags']
+            new_post.save()
+
+            for tag in tags:
+                new_post.tags.add(tag)
+
+            return HttpResponseRedirect(reverse('blog:post_list'))
+    else:
+        post_form = PostForm()
+        return render(request, 'blog/post/create.html', {'post_form': post_form})
