@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
@@ -82,20 +82,24 @@ def post_detail(request, year, month, day, post):
 
 
 @login_required
-def create_post(request):
-    if request.method == 'POST':
-        post_form = PostForm(data=request.POST)
-        if post_form.is_valid():
-            new_post = post_form.save(commit=False)
-            new_post.slug = slugify(new_post.title)
-            new_post.author = request.user
-            tags = post_form.cleaned_data['tags']
-            new_post.save()
-
-            for tag in tags:
-                new_post.tags.add(tag)
-
-            return HttpResponseRedirect(reverse('blog:post_list'))
+def create_or_edit_post(request, _id=None):
+    if _id:
+        post = get_object_or_404(Post, pk=_id)
+        if post.author != request.user:
+            return HttpResponseForbidden()
     else:
-        post_form = PostForm()
-        return render(request, 'blog/post/create.html', {'post_form': post_form})
+        post = Post(author=request.user)
+
+    post_form = PostForm(data=request.POST or None, instance=post)
+
+    if request.POST and post_form.is_valid():
+        new_post = post_form.save(commit=False)
+        new_post.slug = slugify(new_post.title)
+        new_post.save()
+
+        tags = post_form.cleaned_data['tags']
+        new_post.tags.add(*tags)
+
+        return HttpResponseRedirect(reverse('blog:post_list'))
+
+    return render(request, 'blog/post/create.html', {'post_form': post_form})
