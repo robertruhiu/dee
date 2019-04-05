@@ -7,7 +7,7 @@
     <main role="main" class="col-md-12 ml-lg-auto  col-lg-10 px-4 ">
     <div class="d-none d-lg-block">
         <nav class="navbar  navbar-light fixed-top fine border-bottom">
-                    <h5 >Payment</h5>
+                    <h5>Payment</h5>
                     <ul class="nav ml-auto">
 
 
@@ -110,18 +110,18 @@
 
 
         const API_publicKey = "FLWPUBK-37536a50fc02bed5bddf5ebe89a18e7c-X";
-        const SuccessUrl = '{% url 'marketplace:flutter-done' %}';
-        const CancelledUrl = '{% url 'marketplace:canceled' %}';
+        const SuccessUrl = '{% url 'marketplace:payment_done' transaction.id %}';
+        const CancelledUrl = '{% url 'marketplace:payment_canceled' %}';
 
         function payWithRave(amnt) {
             var x = getpaidSetup({
                 PBFPubKey: API_publicKey,
-                customer_email: 'simon.suuk@gmail.com',
+                customer_email: '{{ transaction.owner.email }}',
                 amount: amnt,
                 customer_phone: "234099940409",
                 currency: "USD",
                 payment_method: "both",
-                txref: 1,
+                txref: {{ transaction.id }},
                 meta: [{
                     metaname: "transactionID",
                     metavalue: "Codeln2019"

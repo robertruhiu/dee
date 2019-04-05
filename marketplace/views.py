@@ -1,5 +1,6 @@
 from collections import Counter
 
+from django.core.mail import send_mail
 from django.views.decorators.csrf import csrf_exempt
 
 import requests
@@ -19,7 +20,7 @@ from classroom.models import Student, TakenQuiz
 from frontend.form import Portfolio_form, Experience_Form, Github_form
 from frontend.models import Github, Experience, Portfolio
 from marketplace.filters import UserFilter
-from .models import Job, JobApplication
+from .models import Job, JobApplication, DevRequest
 from .forms import JobForm
 
 
@@ -222,17 +223,32 @@ def dev_details(request, dev_id):
         return render(request, 'frontend/developer/github.html', {'form': form})
 
 
-def process_payment(request):
+@login_required()
+def process_payment(request, dev_id):
+    dev_req = DevRequest.objects.create(owner=request.user, dev=User.objects.get(id=dev_id))
     return render(request, 'marketplace/recruiter/payment.html',
-                  {'amount': 200, 'transaction': None})
+                  {'amount': 200, 'transaction': dev_req})
 
 
 @csrf_exempt
-def payment_canceled(request, id):
-    # redirect to add candidates
-    return redirect(reverse('transactions:process_transaction'))
+def payment_canceled(request):
+    return redirect(reverse('marketplace:dev_pool'))
 
 
 @csrf_exempt
-def flutterwavepayment_done(request, id):
-    return redirect(reverse('transactions:process_transaction'))
+def payment_done(request, req_id):
+    dev_req = DevRequest.objects.get(id=req_id)
+    dev_req.paid = True
+    dev_req.save()
+
+    send_mail(
+        'Test invitation',
+        'Hello' + ' ' + dev_req.dev.first_name + ' ' + dev_req.dev.last_name + ' ' + 'you have been invited by a Recruiter to partake in a test. '
+                                                                                     'Use this link to login and access the test invite under Invites: http://beta.codeln.com/accounts/login/',
+        'codeln@codeln.com',
+        [dev_req.dev.email],
+        fail_silently=False,
+    )
+
+    return render(request, 'transactions/invitations.html',
+                  {'candidates': dev_req.dev, 'current_transaction': dev_req})
