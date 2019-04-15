@@ -138,7 +138,22 @@ def get_recommended_developers(job):
 
 
 def dev_pool(request):
-    developers = User.objects.filter(profile__user_type='developer')
+    withprofiles = Github.objects.all()
+    profileids=[]
+    passedquizzes ={}
+    for candidate_id in profileids:
+        student = Student.objects.get(user_id=profileids)
+        passedexams=TakenQuiz.objects.filter(student_id=student.id)
+        allsubject=[]
+        for passedexam in passedexams:
+            allsubject.append(passedexam.quiz.subject.name)
+        setsubjects= set(allsubject)
+        subjectlist=list(setsubjects)
+        passedquizzes[candidate_id]=subjectlist
+    for profile in withprofiles:
+        profileids.append(profile.candidate_id)
+
+    developers = User.objects.filter(id__in=profileids)
 
     if request.method == 'POST':
         search_field = request.POST['search_field']
@@ -148,79 +163,74 @@ def dev_pool(request):
         filtered_devs = developers_filter.qs
 
         developers = filtered_devs.filter(
-            Q(username__icontains=search_field) |
-            Q(first_name__icontains=search_field) |
-            Q(last_name__icontains=search_field) |
-            Q(profile__gender__icontains=search_field) |
-            Q(profile__framework__icontains=search_field) |
-            Q(profile__language__icontains=search_field)
+             Q(profile__gender__icontains=search_field)
+            | Q(profile__framework__icontains=search_field)
+            | Q(profile__language__icontains=search_field)
+
         )
 
         developers = [dev for dev in developers]
 
         return render(request, 'marketplace/recruiter/dev_pool.html',
-                      {'developers': developers, 'search_form': developers_filter.form})
+                      {'developers': developers, 'search_form': developers_filter.form,'candidates':withprofiles})
     else:
         developers_filter = UserFilter(request.GET, queryset=developers)
         developers = [dev for dev in developers_filter.qs]
 
         return render(request, 'marketplace/recruiter/dev_pool.html',
-                      {'developers': developers, 'search_form': developers_filter.form})
+                      {'developers': developers, 'search_form': developers_filter.form,'candidates':withprofiles,})
+
 
 
 def dev_details(request, dev_id):
     requested_dev = User.objects.get(id=dev_id)
-    try:
-        candidate = Github.objects.get(candidate=requested_dev)
-        user = candidate.github_username
-        username = config('GITHUB_USERNAME', default='GITHUB_USERNAME')
-        token = config('ACCESS_TOKEN', default='ACCESS_TOKEN')
-        json_data = requests.get('https://api.github.com/users/' + user, auth=(username, token)).json()
 
-        form = Portfolio_form()
-        experience_form = Experience_Form()
-        repo = 'https://api.github.com/users/' + user + '/repos'
-        repos = requests.get(repo, auth=(username, token)).json()
-        paginator = Paginator(repos, 8)
+    candidate = Github.objects.get(candidate=requested_dev)
+    user = candidate.github_username
+    username = config('GITHUB_USERNAME', default='GITHUB_USERNAME')
+    token = config('ACCESS_TOKEN', default='ACCESS_TOKEN')
+    json_data = requests.get('https://api.github.com/users/' + user, auth=(username, token)).json()
 
-        page = request.GET.get('page')
-        repoz = paginator.get_page(page)
-        languages = []
+    form = Portfolio_form()
+    experience_form = Experience_Form()
+    repo = 'https://api.github.com/users/' + user + '/repos'
+    repos = requests.get(repo, auth=(username, token)).json()
+    paginator = Paginator(repos, 8)
 
-        for i in repos:
-            for x in i:
-                languages.append(i['language'])
+    page = request.GET.get('page')
+    repoz = paginator.get_page(page)
+    languages = []
 
-        counter = Counter(languages)
-        labels = []
-        c = {}
-        items = []
-        for z in counter:
-            c[z] = counter[z]
-            labels.append(z)
-            items.append(counter[z])
-        data = {
-            "labels": labels,
-            "data": items,
-        }
-        student = Student.objects.get(user_id=dev_id)
-        verified_skills = TakenQuiz.objects.filter(student=student).filter(score__gte=50).all()
-        skill = []
-        for verified_skill in verified_skills:
-            skill.append(verified_skill.quiz.subject.name)
-        skillset = set(skill)
-        skills = list(skillset)
+    for i in repos:
+        for x in i:
+            languages.append(i['language'])
 
-        experiences = Experience.objects.filter(candidate=requested_dev).all()
-        verified_projects = Portfolio.objects.filter(candidate=requested_dev).all()
-        return render(request, 'marketplace/recruiter/dev_portfolio.html',
-                      {'json': json_data, 'repos': repoz, 'data': data, 'c': c, 'form': form,
-                       'verified_projects': verified_projects, 'experience_form': experience_form,
-                       'experiences': experiences, 'skills': skills, 'developer': requested_dev})
-    except Github.DoesNotExist:
-        form = Github_form()
+    counter = Counter(languages)
+    labels = []
+    c = {}
+    items = []
+    for z in counter:
+        c[z] = counter[z]
+        labels.append(z)
+        items.append(counter[z])
+    data = {
+        "labels": labels,
+        "data": items,
+    }
+    student = Student.objects.get(user_id=dev_id)
+    verified_skills = TakenQuiz.objects.filter(student=student).filter(score__gte=50).all()
+    skill = []
+    for verified_skill in verified_skills:
+        skill.append(verified_skill.quiz.subject.name)
+    skillset = set(skill)
+    skills = list(skillset)
 
-        return render(request, 'frontend/developer/github.html', {'form': form})
+    experiences = Experience.objects.filter(candidate=requested_dev).all()
+    verified_projects = Portfolio.objects.filter(candidate=requested_dev).all()
+    return render(request, 'marketplace/recruiter/dev_portfolio.html',
+                  {'json': json_data, 'repos': repoz, 'data': data, 'c': c, 'form': form,
+                   'verified_projects': verified_projects, 'experience_form': experience_form,
+                   'experiences': experiences, 'skills': skills, 'developer': requested_dev,'candidate':candidate})
 
 
 @login_required()

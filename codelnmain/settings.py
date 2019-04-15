@@ -53,12 +53,15 @@ INSTALLED_APPS = [
     'transactions',
     'payments',
     'marketplace',
+    'chat',
     'crispy_forms',
 
     # third party libs
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'widget_tweaks',
+    'rest_framework',
 
     # 'django_filters',
     'invitations',

@@ -22,11 +22,11 @@ from accounts.forms import ProfileTypeForm, DeveloperFillingDetailsForm, Recruit
 from transactions.models import Transaction, Candidate,OpenCall,Applications
 from invitations.models import Invitation
 from projects.models import Project, Framework
-from frontend.form import Projectinvite, EditProjectForm,Submissions,Portfolio_form,Github_form,Experience_Form
+from frontend.form import Projectinvite, EditProjectForm,Submissions,Portfolio_form,Github_form,Experience_Form,About
 from frontend.models import candidatesprojects, devs, recruiters,submissions,Portfolio,Github,Experience
 from classroom.models import TakenQuiz,Student
 from marketplace.models import Job
-
+from taggit.models import TaggedItem
 @login_required
 def developer_filling_details(request, current_profile):
     if request.method == 'POST':
@@ -59,19 +59,11 @@ def developer_filling_details(request, current_profile):
                 exp1 = 'Mid-Level'
                 exp2 = 'Senior'
 
-            languages = current_profile.language.split(',')  # languages
-            frameworks = current_profile.framework.split(',')  # frameworks
+            profile_tags = [current_profile.language, current_profile.framework, exp1, exp2, current_profile.country.name, current_profile.availabilty]
 
-            profile_tags = [exp1.lower(), exp2.lower(), current_profile.country.name.lower(), current_profile.availabilty.lower()]
+            print('profile_tags-------------------> ', profile_tags)
 
-            for lang in languages:
-                profile_tags.append(lang.lower())
-
-            for fram in frameworks:
-                profile_tags.append(fram.lower())
-
-            for tag in profile_tags:
-                current_profile.tags.add(tag)
+            current_profile.tags.add(profile_tags[0], profile_tags[1], profile_tags[2], profile_tags[3], profile_tags[4], profile_tags[5])
 
             return redirect(reverse('frontend:index'))
     else:
@@ -132,6 +124,8 @@ def index(request):
         elif request.user.profile.stage == 'complete':
             if request.user.profile.user_type == 'developer':
                 try:
+                    # user =request.user
+                    # tags = user.profile.tags.all()
                     student = Student.objects.get(user_id=request.user.id)
                     passedquizz = TakenQuiz.objects.filter(score__gt=50).filter(student_id=student)
                     return render(request, 'frontend/developer/developer.html', {'passedquizz': passedquizz})
@@ -139,6 +133,7 @@ def index(request):
                     obj = Student(user=request.user)
                     obj.save()
                     return render(request, 'frontend/developer/developer.html')
+
             elif request.user.profile.user_type == 'recruiter':
                 jobs = Job.objects.filter(posted_by=request.user)
                 return render(request, 'frontend/recruiter/recruiter.html', {'transactions': transactions,'jobs':jobs})
@@ -331,6 +326,9 @@ def onboardrecruiters(request):
 def credits(request):
     return render(request, 'frontend/credits.html')
 
+def management(request):
+    return render(request, 'frontend/recruiter/management.html')
+
 
 def privacy(request):
     return render(request, 'frontend/privacy.html')
@@ -521,6 +519,7 @@ def pickcandidates(request,trans_id,candidate_id):
 @login_required
 def portfolio(request):
     try:
+
         candidate = Github.objects.get(candidate=request.user)
         user = candidate.github_username
         username = config('GITHUB_USERNAME',default='GITHUB_USERNAME')
@@ -529,6 +528,7 @@ def portfolio(request):
 
         form = Portfolio_form()
         experience_form = Experience_Form()
+        about_form = About()
         repo = 'https://api.github.com/users/' + user + '/repos'
         repos = requests.get(repo, auth=(username, token)).json()
         paginator = Paginator(repos, 8)
@@ -567,7 +567,8 @@ def portfolio(request):
         verified_projects = Portfolio.objects.filter(candidate=request.user).all()
         return render(request, 'frontend/developer/portfolio.html',
                       {'json': json_data, 'repos': repoz, 'data': data, 'c': c, 'form': form,
-                       'verified_projects': verified_projects,'experience_form':experience_form,'experiences':experiences,'skills':skills})
+                       'verified_projects': verified_projects,'experience_form':experience_form,'experiences':experiences,
+                       'skills':skills,'candidate':candidate,'about_form':about_form})
     except Github.DoesNotExist:
         form = Github_form()
 
@@ -581,10 +582,9 @@ def newproject(request):
         if myprojects.is_valid():
             title = myprojects.cleaned_data['title']
             description = myprojects.cleaned_data['description']
-            image = myprojects.cleaned_data['image']
             repo = myprojects.cleaned_data['repository_link']
             demo = myprojects.cleaned_data['demo_link']
-            newprojo =Portfolio(candidate=request.user,demo_link=demo,repository_link=repo,title=title,image=image,description=description)
+            newprojo =Portfolio(candidate=request.user,demo_link=demo,repository_link=repo,title=title,description=description)
             newprojo.save()
     return redirect(reverse('frontend:portfolio'))
 @login_required
@@ -665,5 +665,14 @@ def editportfolioproject(request,project_id):
         return redirect('frontend:portfolio')
 
     return render(request, 'frontend/developer/editproject.html',{'project': project,'form':form})
+
+def about(request,candidate_id):
+    instance = get_object_or_404(Github,candidate_id=candidate_id)
+    if request.method =='POST':
+        new_about = About(request.POST or None,instance=instance)
+        if new_about.is_valid():
+            new_about.save()
+            return redirect('frontend:portfolio')
+    return redirect(reverse('frontend:portfolio'))
 
 

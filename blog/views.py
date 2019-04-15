@@ -42,15 +42,11 @@ def post_list(request, tag_slug=None):
     return render(request, 'blog/post/list.html', {'page': page, 'posts': posts, 'tag': tag})
 
 
-def post_detail(request, year, month, day, post):
+def post_detail(request, post_id):
     """a view to display details of a single post."""
     post = get_object_or_404(
         Post,
-        slug=post,
-        status='published',
-        publish__year=year,
-        publish__month=month,
-        publish__day=day
+        id=post_id
     )
 
     # active comments for this post
