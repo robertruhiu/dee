@@ -7,9 +7,9 @@ import requests
 from decouple import config
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core import mail
@@ -17,7 +17,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
 from classroom.models import Student, TakenQuiz
-from frontend.form import Portfolio_form, Experience_Form, Github_form
+from frontend.form import Portfolio_form, Experience_Form
 from frontend.models import Github, Experience, Portfolio
 from marketplace.filters import UserFilter
 from .models import Job, JobApplication, DevRequest
@@ -129,8 +129,6 @@ def get_recommended_developers(job):
     for tech_stack_item in job.tech_stack.split(','):
         job_tags.append(tech_stack_item.lower())
 
-    print('job tags---------> ', job_tags)
-
     developers = User.objects.filter(profile__user_type='developer').filter(
         profile__tags__name__in=job_tags).distinct()
 
@@ -138,51 +136,117 @@ def get_recommended_developers(job):
 
 
 def dev_pool(request):
-    withprofiles = Github.objects.all()
-    profileids=[]
-    passedquizzes ={}
-    for candidate_id in profileids:
-        student = Student.objects.get(user_id=profileids)
-        passedexams=TakenQuiz.objects.filter(student_id=student.id)
-        allsubject=[]
-        for passedexam in passedexams:
-            allsubject.append(passedexam.quiz.subject.name)
-        setsubjects= set(allsubject)
-        subjectlist=list(setsubjects)
-        passedquizzes[candidate_id]=subjectlist
-    for profile in withprofiles:
-        profileids.append(profile.candidate_id)
+    req_id = 0
+    dev_req = None
 
-    developers = User.objects.filter(id__in=profileids)
+    if request.user.is_authenticated:
+        try:
+            dev_req = DevRequest.objects.filter(owner=request.user, paid=False, closed=False).get()
+            devcount = dev_req.developers
+            requestcount =len(devcount)
+            if dev_req:
+                req_id = dev_req.id
+            withprofiles = Github.objects.all()
+            profileids = []
+            passedquizzes = {}
+            for candidate_id in profileids:
+                student = Student.objects.get(user_id=profileids)
+                passedexams = TakenQuiz.objects.filter(student_id=student.id)
+                allsubject = []
+                for passedexam in passedexams:
+                    allsubject.append(passedexam.quiz.subject.name)
+                setsubjects = set(allsubject)
+                subjectlist = list(setsubjects)
+                passedquizzes[candidate_id] = subjectlist
+            for profile in withprofiles:
+                profileids.append(profile.candidate_id)
 
-    if request.method == 'POST':
-        search_field = request.POST['search_field']
+            developers = User.objects.filter(profile__user_type='developer').filter(id__in=profileids)
 
-        developers_filter = UserFilter(request.POST, queryset=developers)
+            if request.method == 'POST':
+                search_field = request.POST['search_field']
 
-        filtered_devs = developers_filter.qs
+                developers_filter = UserFilter(request.POST, queryset=developers)
 
-        developers = filtered_devs.filter(
-             Q(profile__gender__icontains=search_field)
-            | Q(profile__framework__icontains=search_field)
-            | Q(profile__language__icontains=search_field)
+                filtered_devs = developers_filter.qs
 
-        )
+                developers = filtered_devs.filter(
+                    Q(profile__gender__icontains=search_field)
+                    | Q(profile__framework__icontains=search_field)
+                    | Q(profile__language__icontains=search_field)
+                )
 
-        developers = [dev for dev in developers]
+                developers = [dev for dev in developers]
 
-        return render(request, 'marketplace/recruiter/dev_pool.html',
-                      {'developers': developers, 'search_form': developers_filter.form,'candidates':withprofiles})
-    else:
-        developers_filter = UserFilter(request.GET, queryset=developers)
-        developers = [dev for dev in developers_filter.qs]
+                return render(request, 'marketplace/recruiter/dev_pool.html',
+                              {'developers': developers, 'search_form': developers_filter.form,
+                               'candidates': withprofiles,
+                               'req_id': req_id, 'devcount': requestcount})
+            else:
+                developers_filter = UserFilter(request.GET, queryset=developers)
+                developers = [dev for dev in developers_filter.qs]
 
-        return render(request, 'marketplace/recruiter/dev_pool.html',
-                      {'developers': developers, 'search_form': developers_filter.form,'candidates':withprofiles,})
+                return render(request, 'marketplace/recruiter/dev_pool.html',
+                              {'developers': developers, 'search_form': developers_filter.form,
+                               'candidates': withprofiles,
+                               'req_id': req_id, 'devcount': requestcount})
+
+        except:
+            requestcount = 0
+            withprofiles = Github.objects.all()
+            profileids = []
+            passedquizzes = {}
+            for candidate_id in profileids:
+                student = Student.objects.get(user_id=profileids)
+                passedexams = TakenQuiz.objects.filter(student_id=student.id)
+                allsubject = []
+                for passedexam in passedexams:
+                    allsubject.append(passedexam.quiz.subject.name)
+                setsubjects = set(allsubject)
+                subjectlist = list(setsubjects)
+                passedquizzes[candidate_id] = subjectlist
+            for profile in withprofiles:
+                profileids.append(profile.candidate_id)
+
+            developers = User.objects.filter(profile__user_type='developer').filter(id__in=profileids)
+
+            if request.method == 'POST':
+                search_field = request.POST['search_field']
+
+                developers_filter = UserFilter(request.POST, queryset=developers)
+
+                filtered_devs = developers_filter.qs
+
+                developers = filtered_devs.filter(
+                    Q(profile__gender__icontains=search_field)
+                    | Q(profile__framework__icontains=search_field)
+                    | Q(profile__language__icontains=search_field)
+                )
+
+                developers = [dev for dev in developers]
+
+                return render(request, 'marketplace/recruiter/dev_pool.html',
+                              {'developers': developers, 'search_form': developers_filter.form,
+                               'candidates': withprofiles,
+                               'req_id': req_id, 'devcount': requestcount})
+            else:
+                developers_filter = UserFilter(request.GET, queryset=developers)
+                developers = [dev for dev in developers_filter.qs]
+
+                return render(request, 'marketplace/recruiter/dev_pool.html',
+                              {'developers': developers, 'search_form': developers_filter.form,
+                               'candidates': withprofiles,
+                               'req_id': req_id, 'devcount': requestcount})
 
 
 
-def dev_details(request, dev_id):
+
+
+def dev_details(request, dev_id, req_id):
+    dev_picked = False
+    if req_id != 0 and dev_id in DevRequest.objects.get(id=req_id).get_developers():
+        dev_picked = True
+
     requested_dev = User.objects.get(id=dev_id)
 
     candidate = Github.objects.get(candidate=requested_dev)
@@ -230,14 +294,34 @@ def dev_details(request, dev_id):
     return render(request, 'marketplace/recruiter/dev_portfolio.html',
                   {'json': json_data, 'repos': repoz, 'data': data, 'c': c, 'form': form,
                    'verified_projects': verified_projects, 'experience_form': experience_form,
-                   'experiences': experiences, 'skills': skills, 'developer': requested_dev,'candidate':candidate})
+                   'experiences': experiences, 'skills': skills, 'developer': requested_dev, 'candidate': candidate,
+                   'dev_picked': dev_picked})
 
 
 @login_required()
-def process_payment(request, dev_id):
-    dev_req = DevRequest.objects.create(owner=request.user, dev=User.objects.get(id=dev_id))
+def add_dev_to_wish_list(request, dev_id):
+
+    devlist = []
+    devlist.append(dev_id)
+    dev_req = DevRequest(owner=request.user, paid=False, closed=False,developers=devlist)
+    dev_req.save()
+
+
+
+    return redirect(reverse('marketplace:dev_pool'))
+
+
+@login_required()
+def process_payment(request, req_id):
+    if req_id == 0:
+        return redirect(reverse('marketplace:dev_pool'))
+
+    dev_req = DevRequest.objects.get(id=req_id)
+
+    print('pay amount-------> ', dev_req.amount())
+
     return render(request, 'marketplace/recruiter/payment.html',
-                  {'amount': 200, 'transaction': dev_req})
+                  {'amount': dev_req.amount(), 'transaction': dev_req})
 
 
 @csrf_exempt
@@ -249,6 +333,7 @@ def payment_canceled(request):
 def payment_done(request, req_id):
     dev_req = DevRequest.objects.get(id=req_id)
     dev_req.paid = True
+    dev_req.closed = True
     dev_req.save()
 
     send_mail(

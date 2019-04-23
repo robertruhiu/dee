@@ -8,7 +8,7 @@ from django.core import mail
 from classroom.models import TakenQuiz
 from transactions.models import Applications
 from frontend.models import candidatesprojects
-from accounts.models import Profile
+from accounts.models import Profile,User
 import csv
 
 @shared_task
@@ -82,31 +82,11 @@ def massmail(request):
     return render(request, 'frontend/recruiter/recruiter.html')
 
 def submission(request):
-    invitations_mails=[]
-    submissions_mails =[]
-    emails = candidatesprojects.objects.all()
-    for email in emails:
-        if email.stage == 'invite-accepted':
-            invitations_mails.append(email)
-        elif email.stage == 'project-in-progress':
-            submissions_mails.append(email)
-    for candidate in invitations_mails:
-        subject = 'Project submission deadline update'
-        html_message = render_to_string('invitations/email/mestsubmission.html',
-                                        {'dev': candidate})
-        plain_message = strip_tags(html_message)
-        from_email = 'codeln@codeln.com'
-        to = candidate.candidate.email
-        mail.send_mail(subject, plain_message, from_email, [to], html_message=html_message)
-    for cand in submissions_mails:
-        subject = 'Project submission deadline update'
-        html_message = render_to_string('invitations/email/mestsubmission.html',
-                                        {'dev': cand})
-        plain_message = strip_tags(html_message)
-        from_email = 'codeln@codeln.com'
-        to = cand.candidate.email
-        mail.send_mail(subject, plain_message, from_email, [to], html_message=html_message)
+    me=[]
+    all=User.objects.all()
+    for i in all:
+        if i.profile.user_type =='developer':
+            me.append()
     return render(request, 'frontend/recruiter/recruiter.html')
-
 
 

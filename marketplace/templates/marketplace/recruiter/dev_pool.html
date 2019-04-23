@@ -10,8 +10,31 @@
     <main role="main" class="col-md-12 ml-lg-auto  col-lg-10 px-4 ">
         <div class="d-none d-lg-block">
             <nav class="navbar  navbar-light fixed-top fine border-bottom">
-                <h5>Developer pool</h5>
+                <h5>
+                    Developer Pool
+
+                </h5>
                 <ul class="nav ml-auto">
+                {% if request.user.is_authenticated and req_id != 0 %}
+                    <li class="nav-item">
+
+
+
+                            <a class="nav-link" style="text-decoration: none"
+                               href="{% url 'marketplace:process_payment' req_id %}">
+                                <span  data-feather="shopping-cart"></span>
+                                <span class="badge badge-primary">{{ devcount }}</span>
+
+
+                            </a>
+
+
+
+
+
+
+                    </li>
+                {% endif %}
 
 
                     {% if request.user.is_authenticated %}
@@ -179,7 +202,8 @@
 
                                     {% for candidate in candidates %}
                                         {% if candidate.candidate_id == dev.id %}
-                                            <p class="text-muted">{{ candidate.about|truncatechars:150 }} <span style="color: blue">read more</span></p>
+                                            <p class="text-muted">{{ candidate.about|truncatechars:150 }} <span
+                                                    style="color: blue">read more</span></p>
                                         {% endif %}
                                     {% endfor %}
 
@@ -195,12 +219,12 @@
 
                                     <p>Preffered work type : <span
                                             class="text-muted">{{ dev.profile.availabilty }}</span></p>
-                                <p><a href="{% url 'marketplace:dev_details' dev.id %}">View Details</a>
-                            </p>
-                                {% if request.user.is_authenticated %}
-                                 <p><a href="{% url 'chat:set_chat' request.user.id dev.id %}">Chat Candidate</a>
-                            </p>
-                                {% endif %}
+                                    <p><a href="{% url 'marketplace:dev_details' dev.id req_id %}">View Details</a>
+                                    </p>
+                                    {% if request.user.is_authenticated %}
+                                        <p><a href="{% url 'chat:set_chat' request.user.id dev.id %}">Chat Candidate</a>
+                                        </p>
+                                    {% endif %}
                                 </div>
 
                             </div>
@@ -210,7 +234,6 @@
                 </div>
             {% endfor %}
         </div>
-
 
 
     </main>

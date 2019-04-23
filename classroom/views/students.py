@@ -68,20 +68,22 @@ def student_registration(request):
 @login_required
 def take(request, pk):
     global tempquiz
-
     quiz = get_object_or_404(Quiz, pk=pk)
+
     student = Student.objects.get(user_id=request.user.id)
-    takenquizsubjectlist = []
-    subjects = TakenQuiz.objects.filter(student_id=student.id)
-    for subject in subjects:
-        takenquizsubjectlist.append(subject.quiz.subject.id)
-    subjectsset = set(takenquizsubjectlist)
-    if quiz.subject.id in subjectsset:
+    takenquizlist = []
+    quizzes = TakenQuiz.objects.filter(student_id=student.id)
+    for onequiz in quizzes:
+        takenquizlist.append(onequiz.quiz.name)
+
+    if quiz.name in takenquizlist:
         return redirect('students:taken_quiz_list')
     else:
         questionlist = []
         try:
-            tempquiz = RandomQuiz.objects.get(quiz_id=pk)
+            tempquiz = RandomQuiz.objects.get(student_id=student.id,quiz_id=pk)
+
+
         except RandomQuiz.DoesNotExist:
             currentquiz =Question.objects.filter(quiz_id=pk)
             for onequestion in currentquiz:
@@ -91,6 +93,7 @@ def take(request, pk):
                 questionrandomlist = random.sample(questionlist, 30)
                 obj = RandomQuiz(quiz=quiz, student=student, questions=questionrandomlist)
                 obj.save()
+
                 return redirect('students:take', pk)
             except:
                 pass
@@ -119,14 +122,14 @@ def take(request, pk):
                             student_answer.student = student
                             student_answer.quiz = quiz
                             student_answer.save()
-                            randomquizinstance = RandomQuiz.objects.get(quiz_id=pk)
+                            randomquizinstance = RandomQuiz.objects.get(quiz_id=pk,student_id=student.id)
                             randomquizinstance.questions = unanswered_questions
                             randomquizinstance.save()
 
                         else:
                             default_answer = StudentAnswer(quiz=quiz,student=student,answer=Answer.objects.filter(question_id = question.id).last())
                             default_answer.save()
-                            randomquizinstance = RandomQuiz.objects.get(quiz_id=pk)
+                            randomquizinstance = RandomQuiz.objects.get(quiz_id=pk,student_id=student.id)
                             randomquizinstance.questions = unanswered_questions
                             randomquizinstance.save()
                         if student.get_unanswered_questions(quiz).exists():

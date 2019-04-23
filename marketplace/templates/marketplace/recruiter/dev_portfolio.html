@@ -96,13 +96,13 @@
                     {% if key == 'avatar_url' %}
                         <div style="width: 13rem;">
 
-                                <svg class="card-img-top"
-                                     style=""
-                                     data-jdenticon-value=" {{ developer.first_name }} + {{ developer.last_name }} "
-                                >
-                                    developer name
-                                </svg>
-                            </div>
+                            <svg class="card-img-top"
+                                 style=""
+                                 data-jdenticon-value=" {{ developer.first_name }} + {{ developer.last_name }} "
+                            >
+                                developer name
+                            </svg>
+                        </div>
                     {% endif %}
                 {% endfor %}
             </div>
@@ -169,8 +169,8 @@
 
                     <p >Preferred work type : <span class="">{{ developer.profile.availabilty }}</span></p>
                 <a style="text-decoration: none"
-               href="{% url 'marketplace:process_payment' developer.id %}"><span
-                    class="btn-sm btn-primary ">Pick Candidate</span></a>
+               href="{% url 'marketplace:add_dev_to_wish_list' developer.id %}"><span
+                    class="btn-sm btn-primary ">Add to wishlist</span></a>
 
                 </div>
 

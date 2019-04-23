@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Job, JobApplication
+from .models import Job, JobApplication, DevRequest
 
 
 class JobAdmin(admin.ModelAdmin):
@@ -9,3 +9,4 @@ class JobAdmin(admin.ModelAdmin):
 
 admin.site.register(Job, JobAdmin)
 admin.site.register(JobApplication)
+admin.site.register(DevRequest)

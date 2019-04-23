@@ -35,8 +35,8 @@ urlpatterns = [
     path('', include('classroom.urls')),
     path('invitations/', include('invitations.urls', namespace='invitations')),
     path('marketplace/', include('marketplace.urls', namespace='marketplace')),
-    path('blog/',include('blog.urls',namespace='blog'))
-
+    path('blog/',include('blog.urls',namespace='blog')),
+    path('', include('chat.urls', namespace='chat')),
 ]
 
 if settings.DEBUG:
